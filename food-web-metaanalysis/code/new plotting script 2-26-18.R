@@ -30,6 +30,37 @@ V(net)$group # Vertex attribute "nodes"
 
 plot(net) # not a pretty picture!
 
+## Function to wrap long strings
+# Source: http://stackoverflow.com/a/7367534/496488
+wrap_strings <- function(vector_of_strings,width){
+  as.character(sapply(vector_of_strings, FUN=function(x){
+    paste(strwrap(x, width=width), collapse="\n")
+  }))
+}
+
+# Apply the function to wrap the node labels
+V(net)$label= wrap_strings(V(net)$label, 12)
+
+## Shrink font
+V(net)$group.cex = 0.8
+
+# Function to increase node separation (for explanatory details, see the link below)
+# Source: http://stackoverflow.com/a/28722680/496488
+layout.by.attr <- function(graph, wc, cluster.strength=1,layout=layout.auto) {  
+  net <- graph.edgelist(get.edgelist(net)) # create a lightweight copy of graph w/o the attributes.
+  E(net)$weight <- 1
+  V(net)$size <- deg*3
+  
+  attr <- cbind(id=1:vcount(net), val=wc)
+  net <- net + vertices(unique(attr[,2])) + igraph::edges(unlist(t(attr)), weight=cluster.strength)
+  
+  l <- layout(net, weights=E(net)$weight)[1:vcount(net),]
+  return(l)
+}
+plot(net, vertex.shape="circle",edge.arrow.size=.4)
+
+#back to simplified net
+
 net <- simplify(net, remove.multiple = F, remove.loops = T)
 
 plot(net, edge.arrow.size=.4,vertex.label=NA)
@@ -69,10 +100,16 @@ legend(x=-1.5, y=-1.1, c("management","soil_property", "outcome"), pch=21,
        col="#777777", pt.bg=colrs, pt.cex=2, cex=.8, bty="n", ncol=1)
 plot(net, edge.arrow.size=.4, edge.curved=.1)
 #this will start coloring lines (right now based on origin, but could use if duplicate links based on direction...)
-edge.start <- get.edges(net, 1:ecount(net))[,1] 
-edge.col <- V(net)$color[edge.start]
+edge.col=ifelse(E(net)$direction > 0, "blue","red")
+
 
 plot(net, edge.color=edge.col, edge.curved=.1)
+
+
+## new plot with spread nodes, colored lines, and legend
+plot(net, vertex.shape="circle", edge.arrow.size=.4, edge.color=edge.col,edge.curved=.1)
+legend(x=-1.5, y=-1.1, c("management","soil_property", "outcome"), pch=21,
+       col="#777777", pt.bg=colrs, pt.cex=2, cex=.8, bty="n", ncol=1)
 
 #network layouts
 l <- layout.circle(net) 
