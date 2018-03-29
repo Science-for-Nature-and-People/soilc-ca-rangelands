@@ -170,3 +170,17 @@ palf <- colorRampPalette(c("gold", "dark orange"))
 heatmap(netm[,32:1], Rowv = NA, Colv = NA, col = palf(100),
        scale="none", margins=c(10,10) )
      
+
+# 2 level newtork plot reingold tilford (currently too condensed)
+co <- layout.reingold.tilford(net, repulserad=vcount(net)^3, area=vcount(net)^2.4)
+plot(net, layout=co)
+
+
+# collapsible tree
+install.packages("collapsibleTree")
+library(collapsibleTree)
+collapsibleTree(net, 
+                hierarchy = nodes$group.type("1"),
+                width = 800)
+
+
