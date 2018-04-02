@@ -176,11 +176,57 @@ co <- layout.reingold.tilford(net, root='grazing')
 plot(net, layout=co)
 
 
-# collapsible tree
-install.packages("collapsibleTree")
-library(collapsibleTree)
-collapsibleTree(net, 
-                hierarchy = nodes$group.type("1"),
-                width = 800)
+## plotting sub networks as multiple panels in fig (first is complete net, following are sub)
+# create subnets
+graze <- subset(links, resource == "grazing")
+subnet1 <- graph.data.frame(graze, directed=T)
 
+tree <- subset(links, resource == "tree_shrub_presence")
+subnet2 <- graph.data.frame(tree, directed=T)
+
+grazetree <- subset(links, resource == "grazing_tree_shrub_presence")
+subnet3 <- graph.data.frame(grazetree, directed=T)
+
+riparian <- subset(links, resource == "riparian_restoration")
+subnet4 <- graph.data.frame(riparian, directed=T)
+
+composition <- subset(links, resource == "grassland_composition")
+subnet5 <- graph.data.frame(composition, directed=T)
+
+hedge <- subset(links, resource == "hedgerow_planting")
+subnet6 <- graph.data.frame(hedge, directed=T)
+
+orgamend <- subset(links, resource == "organic_amendment")
+subnet7 <- graph.data.frame(orgamend, directed=T)
+
+
+
+par(mfrow=c(4,2), mar=c(0,0,0,0)) # plot two figures - 4 rows, 2 columns 
+
+plot(net, vertex.shape="circle", edge.arrow.size=.4, edge.color=edge.col,edge.curved=.1)
+legend(x=-1.5, y=-1.1, c("management","soil_property", "outcome"), pch=21,
+       col="#777777", pt.bg=colrs, pt.cex=2, cex=.8, bty="n", ncol=1) 
+plot(subnet1, vertex.shape="circle", edge.arrow.size=.4, edge.color=edge.col,edge.curved=.1)
+legend(x=-1.5, y=-1.1, c("management","soil_property", "outcome"), pch=21,
+       col="#777777", pt.bg=colrs, pt.cex=2, cex=.8, bty="n", ncol=1) 
+plot(subnet2, vertex.shape="circle", edge.arrow.size=.4, edge.color=edge.col,edge.curved=.1)
+legend(x=-1.5, y=-1.1, c("management","soil_property", "outcome"), pch=21,
+       col="#777777", pt.bg=colrs, pt.cex=2, cex=.8, bty="n", ncol=1) 
+plot(subnet3, vertex.shape="circle", edge.arrow.size=.4, edge.color=edge.col,edge.curved=.1)
+legend(x=-1.5, y=-1.1, c("management","soil_property", "outcome"), pch=21,
+       col="#777777", pt.bg=colrs, pt.cex=2, cex=.8, bty="n", ncol=1) 
+plot(subnet4, vertex.shape="circle", edge.arrow.size=.4, edge.color=edge.col,edge.curved=.1)
+legend(x=-1.5, y=-1.1, c("management","soil_property", "outcome"), pch=21,
+       col="#777777", pt.bg=colrs, pt.cex=2, cex=.8, bty="n", ncol=1) 
+plot(subnet5, vertex.shape="circle", edge.arrow.size=.4, edge.color=edge.col,edge.curved=.1)
+legend(x=-1.5, y=-1.1, c("management","soil_property", "outcome"), pch=21,
+       col="#777777", pt.bg=colrs, pt.cex=2, cex=.8, bty="n", ncol=1) 
+plot(subnet6, vertex.shape="circle", edge.arrow.size=.4, edge.color=edge.col,edge.curved=.1)
+legend(x=-1.5, y=-1.1, c("management","soil_property", "outcome"), pch=21,
+       col="#777777", pt.bg=colrs, pt.cex=2, cex=.8, bty="n", ncol=1) 
+plot(subnet7, vertex.shape="circle", edge.arrow.size=.4, edge.color=edge.col,edge.curved=.1)
+legend(x=-1.5, y=-1.1, c("management","soil_property", "outcome"), pch=21,
+       col="#777777", pt.bg=colrs, pt.cex=2, cex=.8, bty="n", ncol=1) 
+
+dev.off() # shut off the graphic device to clear the two-figure configuration.
 
