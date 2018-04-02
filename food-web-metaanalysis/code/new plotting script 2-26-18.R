@@ -172,7 +172,7 @@ heatmap(netm[,32:1], Rowv = NA, Colv = NA, col = palf(100),
      
 
 # 2 level newtork plot reingold tilford (currently too condensed)
-co <- layout.reingold.tilford(net, repulserad=vcount(net)^3, area=vcount(net)^2.4)
+co <- layout.reingold.tilford(net, root='grazing')
 plot(net, layout=co)
 
 
