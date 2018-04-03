@@ -3,8 +3,8 @@ install.packages("data.tree")
 library(networkD3)
 library(data.tree)
 
-nodes <- read.csv("~/Desktop/web_community/nodes.csv", header=T, as.is=T)
-links <- read.csv("~/Desktop/web_community/trophic.links.csv", header=T, as.is=T)
+nodes <- read.csv("food-web-metaanalysis/data/nodes.csv", header=T, as.is=T)
+links <- read.csv("food-web-metaanalysis/data/trophic.links.csv", header=T, as.is=T)
 
 
 net <- data.frame(links,nodes, directed = T)
