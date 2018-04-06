@@ -177,6 +177,25 @@ plot(net, layout=co)
 
 
 ## plotting sub networks as multiple panels in fig (first is complete net, following are sub)
+#adjust links values first
+# Set edge width based on weight:
+links$width <- links$strength/6
+
+#change arrow size and edge color:
+links$arrow.size <- .2 
+links$edge.color <- "gray80" 
+links$width <- 1+links$weight/12
+
+edge.col=ifelse(links$direction > 0, "blue","red")
+
+
+# Generate colors base on media type for subnets:
+links$group.type <- V(net)$group.type
+colrs <- c("gray50", "tomato", "gold")
+links$color <- colrs[V(net)$group.type]
+deg <- degree(net, mode="all")
+V(net)$size <- deg*3
+
 # create subnets
 graze <- subset(links, resource == "grazing")
 subnet1 <- graph.data.frame(graze, directed=T)
@@ -198,6 +217,7 @@ subnet6 <- graph.data.frame(hedge, directed=T)
 
 orgamend <- subset(links, resource == "organic_amendment")
 subnet7 <- graph.data.frame(orgamend, directed=T)
+
 
 
 
