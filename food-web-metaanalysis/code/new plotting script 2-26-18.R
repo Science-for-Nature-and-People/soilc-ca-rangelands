@@ -82,7 +82,7 @@ plot(net, edge.arrow.size=.4, edge.curved=.1)
 # Generate colors base on media type:
 colrs <- c("gray50", "tomato", "gold")
 V(net)$color <- colrs[V(net)$group.type]
-deg <- degree(net, mode="all")
+deg <- links$ref
 V(net)$size <- deg*3
 
 # Set edge width based on weight:
