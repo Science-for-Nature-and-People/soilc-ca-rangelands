@@ -59,6 +59,17 @@ layout.by.attr <- function(graph, wc, cluster.strength=1,layout=layout.auto) {
 }
 plot(net, vertex.shape="circle",edge.arrow.size=.4)
 
+#working on tkplot to spread nodes
+capabilities("tcltk")
+system("ls -ld /usr/local /usr/local/lib /usr/local/lib/libtcl*")
+
+Coord <- tkplot(net, vertex.size=3, 
+                edge.arrow.size=0.5, edge.color="black")
+MCoords <- tkplot.getcoords(Coord)
+plot(net, layout=MCoords, vertex.size=5, 
+      edge.arrow.size=0.5, edge.color="black")
+
+
 #back to simplified net
 
 net <- simplify(net, remove.multiple = F, remove.loops = T)
@@ -93,6 +104,8 @@ E(net)$arrow.size <- .2
 E(net)$edge.color <- "gray80" 
 E(net)$width <- 1+E(net)$weight/12
 plot(net)
+
+
 
 #legend
 plot(net)
