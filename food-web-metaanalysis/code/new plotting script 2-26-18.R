@@ -116,7 +116,7 @@ plot(net, edge.arrow.size=.4, edge.curved=.1)
 edge.col=ifelse(E(net)$direction > 0, "blue","red")
 
 
-plot(net, edge.color=edge.col, edge.curved=.1)
+plot(net, edge.color=edge.col, edge.curved=.1,layout=MCoords)
 
 
 ## new plot with spread nodes, colored lines, and legend
