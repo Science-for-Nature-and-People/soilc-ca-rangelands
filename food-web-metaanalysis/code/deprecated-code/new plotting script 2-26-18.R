@@ -1,23 +1,31 @@
-install.packages("igraph")
-install.packages("network") 
-install.packages("sna") 
-install.packages("ndtv")
+###########################
+# Network plotting script #
+# Author:       Dillon O  #
+# Last updated: May 2018  #
+###########################
 
-# Read whole data set
-#test.community <- LoadCommunity('web_community')
+# INSTALL PACKAGES
+# install.packages("igraph")
+# install.packages("network")
+# install.packages("sna")
+# install.packages("ndtv")
 
-nodes <- read.csv("~/Desktop/web_community/nodes.csv", header=T, as.is=T)
-links <- read.csv("~/Desktop/web_community/trophic.links.csv", header=T, as.is=T)
+# LOAD PACKAGES
+library(igraph)   # For reading 
+library(network)  # For
+library(sna)      # For
+library(ndtv)     # For
 
-head(nodes)
-head(links)
-nrow(nodes); length(unique(nodes$id))
-nrow(links); nrow(unique(links[,c("from", "to")]))
+# READ DATA
 
+## Read whole community
+# test.community <- LoadCommunity('web_community')
 
+## Read data piece by piece
+nodes <- read.csv("food-web-metaanalysis/data/nodes.csv", header=T, as.is=T)
+links <- read.csv("food-web-metaanalysis/data/trophic.links.csv", header=T, as.is=T)
 
-library(igraph)
-
+## Turn links data into a directed network
 net <- graph.data.frame(links, nodes, directed=T)
 net
 #DN = directed named graph
