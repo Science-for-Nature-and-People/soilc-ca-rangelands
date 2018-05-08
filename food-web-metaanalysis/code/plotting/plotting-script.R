@@ -22,8 +22,8 @@ library(ndtv)     # For
 # test.community <- LoadCommunity('web_community')
 
 ## Read data piece by piece
-nodes <- read.csv("food-web-metaanalysis/data/nodes.csv", header=T, as.is=T)
-links <- read.csv("food-web-metaanalysis/data/trophic.links.csv", header=T, as.is=T)
+nodes <- read.csv("Desktop/food-web-metaanalysis/data/nodes.csv", header=T, as.is=T)
+links <- read.csv("Desktop/food-web-metaanalysis/data/trophic.links.csv", header=T, as.is=T)
 
 ## Turn links data into a directed network
 net <- graph.data.frame(links, nodes, directed=T)
@@ -67,7 +67,7 @@ layout.by.attr <- function(graph, wc, cluster.strength=1,layout=layout.auto) {
 }
 plot(net, vertex.shape="circle",edge.arrow.size=.4)
 
-#working on tkplot to spread nodes
+#USE TKPLOT TO SET GRAPH NODE COORDINATES. USE MCoords (saves those coordinates) in future plotting commands to use the layout
 capabilities("tcltk")
 system("ls -ld /usr/local /usr/local/lib /usr/local/lib/libtcl*")
 
@@ -210,12 +210,6 @@ links$width <- 1+links$weight/12
 edge.col=ifelse(links$direction > 0, "blue","red")
 
 
-# Generate colors base on media type for subnets:
-links$group.type <- V(net)$group.type
-colrs <- c("gray50", "tomato", "gold")
-links$color <- colrs[V(net)$group.type]
-deg <- degree(net, mode="all")
-V(net)$size <- deg*3
 
 # create subnets
 graze <- subset(links, resource == "grazing")
@@ -239,6 +233,55 @@ subnet6 <- graph.data.frame(hedge, directed=T)
 orgamend <- subset(links, resource == "organic_amendment")
 subnet7 <- graph.data.frame(orgamend, directed=T)
 
+# Generate colors base on media type for subnets:
+links$group.type <- V(subnet1)$group.type
+colrs <- c("gray50", "tomato", "gold")
+links$color <- colrs[V(net)$group.type]
+deg <- degree(subnet1, mode="all")
+V(subnet1)$size <- deg*3
+
+# Generate colors base on media type for subnets:
+links$group.type <- V(subnet2)$group.type
+colrs <- c("gray50", "tomato", "gold")
+links$color <- colrs[V(net)$group.type]
+deg <- degree(subnet2, mode="all")
+V(subnet2)$size <- deg*3
+
+# Generate colors base on media type for subnets:
+links$group.type <- V(subnet3)$group.type
+colrs <- c("gray50", "tomato", "gold")
+links$color <- colrs[V(net)$group.type]
+deg <- degree(subnet3, mode="all")
+V(subnet3)$size <- deg*3
+
+# Generate colors base on media type for subnets:
+links$group.type <- V(subnet4)$group.type
+colrs <- c("gray50", "tomato", "gold")
+links$color <- colrs[V(net)$group.type]
+deg <- degree(subnet4, mode="all")
+V(subnet4)$size <- deg*3
+
+# Generate colors base on media type for subnets:
+links$group.type <- V(subnet5)$group.type
+colrs <- c("gray50", "tomato", "gold")
+links$color <- colrs[V(net)$group.type]
+deg <- degree(subnet5, mode="all")
+V(subnet5)$size <- deg*3
+
+# Generate colors base on media type for subnets:
+links$group.type <- V(subnet6)$group.type
+colrs <- c("gray50", "tomato", "gold")
+links$color <- colrs[V(net)$group.type]
+deg <- degree(subnet6, mode="all")
+V(subnet6)$size <- deg*3
+
+
+# Generate colors base on media type for subnets:
+links$group.type <- V(subnet7)$group.type
+colrs <- c("gray50", "tomato", "gold")
+links$color <- colrs[V(net)$group.type]
+deg <- degree(subnet7, mode="all")
+V(subnet7)$size <- deg*3
 
 
 
