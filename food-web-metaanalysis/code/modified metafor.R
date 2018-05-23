@@ -1,6 +1,7 @@
 library(ggplot2)
+library(metafor)
 
-dat = read.csv("~/Desktop/forest/forestplotwork.csv", header=T, as.is=T)
+dat = read.csv("~/Desktop/forest/forestplotoutcomes.csv", header=T, as.is=T)
 
 #Create 'cite' vector by merging author and year columns
 dat$cite=NA

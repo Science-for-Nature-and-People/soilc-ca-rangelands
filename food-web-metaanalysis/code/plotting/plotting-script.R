@@ -22,8 +22,8 @@ library(ndtv)     # For
 # test.community <- LoadCommunity('web_community')
 
 ## Read data piece by piece
-nodes <- read.csv("Desktop/food-web-metaanalysis/data/nodes.csv", header=T, as.is=T)
-links <- read.csv("Desktop/food-web-metaanalysis/data/trophic.links.csv", header=T, as.is=T)
+nodes <- read.csv("~/Desktop/food-web-metaanalysis/data/nodes.reduced.csv", header=T, as.is=T)
+links <- read.csv("~/Desktop/food-web-metaanalysis/data/trophic.links.reduced.csv", header=T, as.is=T)
 
 ## Turn links data into a directed network
 net <- graph.data.frame(links, nodes, directed=T)
@@ -188,7 +188,7 @@ colnames(netm) <- V(net)
 rownames(netm) <- V(net)
 
 palf <- colorRampPalette(c("gold", "dark orange")) 
-heatmap(netm[,32:1], Rowv = NA, Colv = NA, col = palf(100),
+heatmap(netm[,17:1], Rowv = NA, Colv = NA, col = palf(100),
        scale="none", margins=c(10,10) )
      
 
@@ -285,9 +285,9 @@ V(subnet7)$size <- deg*3
 
 
 
-par(mfrow=c(4,2), mar=c(0,0,0,0)) # plot two figures - 4 rows, 2 columns 
+par(mfrow=c(3,2), mar=c(0,0,0,0)) # plot two figures - 4 rows, 2 columns 
 
-plot(net, vertex.shape="circle", edge.arrow.size=.4, edge.color=edge.col,edge.curved=.1)
+plot(net, vertex.shape="circle", edge.arrow.size=.4, edge.color=edge.col,edge.curved=.1,layout=MCoords)
 legend(x=-1.5, y=-1.1, c("management","soil_property", "outcome"), pch=21,
        col="#777777", pt.bg=colrs, pt.cex=2, cex=.8, bty="n", ncol=1) 
 plot(subnet1, vertex.shape="circle", edge.arrow.size=.4, edge.color=edge.col,edge.curved=.1)
