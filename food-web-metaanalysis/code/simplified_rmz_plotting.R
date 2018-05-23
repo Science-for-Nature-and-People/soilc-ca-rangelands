@@ -7,7 +7,7 @@ library(sf)
 
 x <- raster("~/Desktop/RMZ-raster/RMZ.tif", package="raster")
 x
-df <- read.csv("~/Desktop/sites.csv")
+df <- read.csv("~/Snapp/soilc-ca-rangelands/food-web-metaanalysis/data/sites.csv")
 sites <- st_as_sf(df,
                   coords = c('x', 'y'),
                   crs = "+proj=longlat +datum=WGS84 +no_defs")
@@ -21,7 +21,7 @@ data
 
 
 plot(x)
-plot(sites.mrc,add=TRUE, col="saegreen2", pch = 18)
+plot(sites.mrc,add=TRUE, col="seagreen2", pch = 18, cex = 2)
 
 
 df$RMZ <- data
