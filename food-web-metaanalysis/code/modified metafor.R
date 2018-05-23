@@ -102,3 +102,60 @@ p
 #Save plot in your working directory
 ggsave(p, file='ggforest.png', width = 8, height=8, dpi=300)
 
+
+# move on to funnel plot as statistical proof
+#Store the meta-analytic estimate and its standard error from whatever model you run (substitute your own values)
+estimate = 1.4532
+se = dat$se
+
+#Store a vector of values that spans the range from 0
+#to the max value of impression (standard error) in your dataset.
+#Make the increment (the final value) small enough (I choose 0.001)
+#to ensure your whole range of data is captured
+se.seq = seq(0, max(dat$se), .3)
+
+#Now, compute vectors of the lower-limit and upper limit values for
+#the 95% CI region, using the range of SE that you generated in the previous step, and the stored value of your meta-analytic estimate.
+ll95 = estimate-(1.96*se.seq)
+ul95 = estimate+(1.96*se.seq)
+
+
+#And finally, do the same thing except now calculating the confidence interval
+#for your meta-analytic estimate based on the stored value of its standard error
+meanll95 = estimate-(1.96*se)
+meanul95 = estimate+(1.96*se)
+
+zr = dat$Hedges.G
+
+#Now, smash all of those calculated values into one data frame (called 'dfCI').
+#You might get a warning about '...row names were found from a short variable...'
+#You can ignore it.
+dfCI = data.frame(ll95, ul95, se.seq, estimate, meanll95, meanul95)
+
+
+fp = ggplot(aes(x = se, y = zr), data = dat) +
+  #Add your data-points to the scatterplot
+  geom_point(shape = 1) +
+  #Give the x- and y- axes informative labels
+  xlab('Standard Error') + ylab('observed outcome')+
+  #Now using the 'dat' data-frame we created, plot dotted lines corresponding
+  #to the lower and upper limits of your 95% CI region,
+  geom_line(aes(x = se.seq, y = ll95), linetype = 'dotted', data = dat) +
+  geom_line(aes(x = se.seq, y = ul95), linetype = 'dotted', data = dat) +
+  #Now plot dotted lines corresponding to the 95% CI of your meta-analytic estimate
+  #geom_segment(aes(x = min(se.seq), y = meanll95, xend = max(se.seq), yend = meanll95), linetype='dotted', data=dat) +
+  #geom_segment(aes(x = min(se.seq), y = meanul95, xend = max(se.seq), yend = meanul95), linetype='dotted', data=dat) +
+  #Reverse the x-axis ordering (se) so that the tip of the funnel will appear
+  #at the top of the figure once we swap the x- and y-axes...
+  scale_x_reverse()+
+  #Specify the range and interval for the tick-marks of the y-axis (Zr);
+  #Choose values that work for you based on your data
+  scale_y_continuous(breaks=seq(-18,18,1))+
+  #And now we flip the axes so that SE is on y- and Zr is on x-
+  coord_flip()+
+  #Finally, apply  APA-format theme.
+  apatheme
+
+#Call the pretty funnel plot
+fp
+
