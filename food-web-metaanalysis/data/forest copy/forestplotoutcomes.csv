@@ -1,0 +1,16 @@
+property_1,property_2,absolute values,Hedges G,SD,SD-
+grazing,water_quality,0.498581077,0.098979854,1.086558319,-1.086558319
+grazing,plant_diversity,1.906823424,1.906823424,1.243434621,-1.243434621
+grazing,native_plant_abundance,12.98154643,-6.318680961,18.35867903,-18.35867903
+grazing,plant_tissue_quality,0.056353997,-0.056353997,0,0
+grazing,natural_pest_control,3.793547215,3.793547215,0,0
+hedgerow_planting,natural_pest_control,4.079567194,4.079567194,0,0
+organic_amendment,forage_production,2.463142847,2.463142847,2.447876116,-2.447876116
+organic_amendment,water_quality,0.46928301,0.38563213,0.491855589,-0.491855589
+organic_amendment,plant_diversity,0.390069958,0.348687149,0.458748342,-0.458748342
+organic_amendment,plant_tissue_quality,6.230738014,6.230738014,4.726682229,-4.726682229
+riparian_restoration,plant_tissue_quality,0.871612663,0.815258666,1.232646449,-1.232646449
+tree_shrub_presence,forage_production,5.846393941,0.570408278,8.679794063,-8.679794063
+tree_shrub_presence,native_plant_abundance,5.790197131,0.715280677,7.077567482,-7.077567482
+tree_shrub_presence,plant_tissue_quality,12.59122369,12.59122369,10.44352819,-10.44352819
+tree_shrub_presence,natural_pest_control,-6.756889285,-6.756889285,3.988896132,-3.988896132
