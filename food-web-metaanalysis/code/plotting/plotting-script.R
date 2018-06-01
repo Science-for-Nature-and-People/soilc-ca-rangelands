@@ -200,92 +200,70 @@ plot(net, layout=co)
 ## plotting sub networks as multiple panels in fig (first is complete net, following are sub)
 #adjust links values first
 # Set edge width based on weight:
-links$width <- links$strength/6
+links$width1 <- subnet1$RMZ1/6
+links$width2 <- subnet2$RMZ2/6
+links$width3 <- subnet3$RMZ3/6
+links$width4 <- subnet4$RMZ4/6
 
 #change arrow size and edge color:
 links$arrow.size <- .2 
 links$edge.color <- "gray80" 
-links$width <- 1+links$weight/12
+links$width1 <- 1+links$weight/12
+links$width2 <- 1+links$weight/12
+links$width3 <- 1+links$weight/12
+links$width4 <- 1+links$weight/12
 
 edge.col=ifelse(links$direction > 0, "blue","red")
 
 
 
 # create subnets
-graze <- subset(links, resource == "grazing")
-subnet1 <- graph.data.frame(graze, directed=T)
+RMZ1 <- subset(links, RMZ1 > 0, select = c(resource,consumer, RMZ1))
+subnet1 <- graph.data.frame(RMZ1, directed=T)
 
-tree <- subset(links, resource == "tree_shrub_presence")
-subnet2 <- graph.data.frame(tree, directed=T)
+RMZ2 <- subset(links, RMZ2 > 0, select = c(resource,consumer, RMZ2))
+subnet2 <- graph.data.frame(RMZ2, directed=T)
 
-grazetree <- subset(links, resource == "grazing_tree_shrub_presence")
-subnet3 <- graph.data.frame(grazetree, directed=T)
+RMZ3 <- subset(links, RMZ3 > 0, select = c(resource,consumer, RMZ3))
+subnet3 <- graph.data.frame(RMZ3, directed=T)
 
-riparian <- subset(links, resource == "riparian_restoration")
-subnet4 <- graph.data.frame(riparian, directed=T)
+RMZ4 <- subset(links, RMZ4 > 0, select = c(resource,consumer, RMZ4))
+subnet4 <- graph.data.frame(RMZ4, directed=T)
 
-composition <- subset(links, resource == "grassland_composition")
-subnet5 <- graph.data.frame(composition, directed=T)
 
-hedge <- subset(links, resource == "hedgerow_planting")
-subnet6 <- graph.data.frame(hedge, directed=T)
-
-orgamend <- subset(links, resource == "organic_amendment")
-subnet7 <- graph.data.frame(orgamend, directed=T)
 
 # Generate colors base on media type for subnets:
-links$group.type <- V(subnet1)$group.type
+RMZ1$group.type <- V(subnet1)$group.type
 colrs <- c("gray50", "tomato", "gold")
-links$color <- colrs[V(net)$group.type]
-deg <- degree(subnet1, mode="all")
+RMZ1$color <- colrs[V(subnet1)$group.type]
+deg <- RMZ1$RMZ1
 V(subnet1)$size <- deg*3
 
 # Generate colors base on media type for subnets:
 links$group.type <- V(subnet2)$group.type
 colrs <- c("gray50", "tomato", "gold")
-links$color <- colrs[V(net)$group.type]
-deg <- degree(subnet2, mode="all")
+links$color <- colrs[V(subnet2)$group.type]
+deg <- RMZ2$RMZ2
 V(subnet2)$size <- deg*3
 
 # Generate colors base on media type for subnets:
 links$group.type <- V(subnet3)$group.type
 colrs <- c("gray50", "tomato", "gold")
-links$color <- colrs[V(net)$group.type]
-deg <- degree(subnet3, mode="all")
+links$color <- colrs[V(subnet3)$group.type]
+deg <- RMZ3$RMZ3
 V(subnet3)$size <- deg*3
 
 # Generate colors base on media type for subnets:
 links$group.type <- V(subnet4)$group.type
 colrs <- c("gray50", "tomato", "gold")
-links$color <- colrs[V(net)$group.type]
-deg <- degree(subnet4, mode="all")
+links$color <- colrs[V(subnet4)$group.type]
+deg <- RMZ4$RMZ4
 V(subnet4)$size <- deg*3
 
-# Generate colors base on media type for subnets:
-links$group.type <- V(subnet5)$group.type
-colrs <- c("gray50", "tomato", "gold")
-links$color <- colrs[V(net)$group.type]
-deg <- degree(subnet5, mode="all")
-V(subnet5)$size <- deg*3
-
-# Generate colors base on media type for subnets:
-links$group.type <- V(subnet6)$group.type
-colrs <- c("gray50", "tomato", "gold")
-links$color <- colrs[V(net)$group.type]
-deg <- degree(subnet6, mode="all")
-V(subnet6)$size <- deg*3
-
-
-# Generate colors base on media type for subnets:
-links$group.type <- V(subnet7)$group.type
-colrs <- c("gray50", "tomato", "gold")
-links$color <- colrs[V(net)$group.type]
-deg <- degree(subnet7, mode="all")
-V(subnet7)$size <- deg*3
 
 
 
-par(mfrow=c(3,2), mar=c(0,0,0,0)) # plot two figures - 4 rows, 2 columns 
+par(mfrow=c(2,2), mar=c(0,0,0,0)) # plot two figures - 4 rows, 2 columns 
 
 plot(net, vertex.shape="circle", edge.arrow.size=.4, edge.color=edge.col,edge.curved=.1,layout=MCoords)
 legend(x=-1.5, y=-1.1, c("management","soil_property", "outcome"), pch=21,
@@ -302,15 +280,7 @@ legend(x=-1.5, y=-1.1, c("management","soil_property", "outcome"), pch=21,
 plot(subnet4, vertex.shape="circle", edge.arrow.size=.4, edge.color=edge.col,edge.curved=.1)
 legend(x=-1.5, y=-1.1, c("management","soil_property", "outcome"), pch=21,
        col="#777777", pt.bg=colrs, pt.cex=2, cex=.8, bty="n", ncol=1) 
-plot(subnet5, vertex.shape="circle", edge.arrow.size=.4, edge.color=edge.col,edge.curved=.1)
-legend(x=-1.5, y=-1.1, c("management","soil_property", "outcome"), pch=21,
-       col="#777777", pt.bg=colrs, pt.cex=2, cex=.8, bty="n", ncol=1) 
-plot(subnet6, vertex.shape="circle", edge.arrow.size=.4, edge.color=edge.col,edge.curved=.1)
-legend(x=-1.5, y=-1.1, c("management","soil_property", "outcome"), pch=21,
-       col="#777777", pt.bg=colrs, pt.cex=2, cex=.8, bty="n", ncol=1) 
-plot(subnet7, vertex.shape="circle", edge.arrow.size=.4, edge.color=edge.col,edge.curved=.1)
-legend(x=-1.5, y=-1.1, c("management","soil_property", "outcome"), pch=21,
-       col="#777777", pt.bg=colrs, pt.cex=2, cex=.8, bty="n", ncol=1) 
+
 
 dev.off() # shut off the graphic device to clear the two-figure configuration.
 
