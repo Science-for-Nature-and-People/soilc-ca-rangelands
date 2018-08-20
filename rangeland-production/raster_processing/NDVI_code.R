@@ -24,7 +24,6 @@ rangeland_in <- file.path(path_input, rangeland_filename)
 ## Define the projection to use (ESPG 3310: NAD 83 California Albers)
 
 newproj <- "+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs" 
-newproj <- "+proj=aea +ellps=GRS80 +datum=NAD83 +units=m +no_defs" 
 
 ## Output filename
 
@@ -47,10 +46,6 @@ county <- file.path(path_input,"/soilc-california/rangeland-production/data/shap
 proj <- projectExtent(rangelands, crs = newproj)  # Set a new reprojection (blank raster)
 range_proj <- projectRaster(rangelands, proj, method= "ngb", alignOnly = FALSE) # Apply new projection to rangelands data
 NDVI_proj <- projectRaster(NDVI, range_proj, method = "ngb", alignOnly = FALSE) # Project, align, and crop the NDVI layer to the projection
-
-## Plot data
-plot(NDVI_proj)
-plot(county, add=T)
 
 ## Create raster of mean values
 mean_NDVI <- zonal(NDVI_proj, range_proj, 'mean', na.rm = TRUE) # This creates a matrix of mean values for each RMZ (median only works for smaller rasters)
