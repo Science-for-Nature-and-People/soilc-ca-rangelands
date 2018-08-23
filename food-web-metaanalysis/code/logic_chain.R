@@ -1,9 +1,10 @@
 library(googlesheets)
 library(tidyverse)
 library(metafor)
+library(reshape2)
 
 all_data <- gs_title("data_collection.xlsx")
-raw_data <- gs_read(ss=all_data, ws = "Raw Evidence")
+raw_data <- gs_read(ss=all_data, ws = "raw_evidence")
 
 ## General data cleaning
 
@@ -13,7 +14,7 @@ raw <- raw_data[raw_data$red_highlight==0,]
 # response type (outcome or soil): there are a few labeled "outcome?"; replace these with "outcome"
 raw$response_type <- as.factor(ifelse(raw$response_type == "outcome?", "outcome", as.character(raw$response_type)))
 
-# treatement_category_1 (lumped treatment category): correct spelling
+# treatment_category_1 (lumped treatment category): correct spelling
 raw$treatment_category_1 <- as.factor(ifelse(raw$treatment_category_1 == "organic ammendment", "organic amendment", as.character(raw$treatment_category_1)))
 
 # split out outcomes to make scanning for duplicates easier
@@ -49,9 +50,9 @@ raw$treatment_sd <- ifelse(is.na(raw$treatment_sd)==T & is.na(raw$treatment_se)=
 
 ## PRUNE data set to just focal management practices, soil properties, and outcomes
 raw.mgmt.pruned <- raw[raw$treatment_category_1 %in% c("grazing","hedgerow planting","organic amendment","riparian restoration","tree/shrub presence"),]
-# 323 of 338 data rows remain
+# 369 of 396 data rows remain
 d <- raw.mgmt.pruned[raw.mgmt.pruned$response_lumped %in% c("forage production", "water quality", "plant diversity", "native plant abundance", "plant tissue quality", "natural pest control", "carbon", "total N", "available phosphorous", "bulk density", "soil organism abundance"),]
-# 210 data rows remain
+# 227 data rows remain
 d <- as.data.frame(d)
 
 ## EDIT data set to conform to uniform treatment definitions
@@ -66,7 +67,7 @@ d$treatment_category_1 <- ifelse(d$id %in% c(164, 165), "riparian restoration", 
 d$treatment_category_1 <- as.factor(d$treatment_category_1)
 
 # swap treatment and control for some rows
-d[d$id %in% c(51, 52, 53, 54, 82, 83, 140, 141, 142, 152, 160, 164, 165, 183, 184, 185, 186, 187, 188, 207, 208, 209, 210, 211, 214, 215, 216, 217, 221, 222, 228, 229, 230, 244, 245, 246, 247, 249, 271, 272), c("control", "control_mean", "control_sd", "control_se", "control_n", "treatment", "treatment_mean", "treatment_sd", "treatment_se", "treatment_n")] <- d[d$id %in% c(51, 52, 53, 54, 82, 83, 140, 141, 142, 152, 160, 164, 165, 183, 184, 185, 186, 187, 188, 207, 208, 209, 210, 211, 214, 215, 216, 217, 221, 222, 228, 229, 230, 244, 245, 246, 247, 249, 271, 272), c("treatment", "treatment_mean", "treatment_sd", "treatment_se", "treatment_n", "control", "control_mean", "control_sd", "control_se", "control_n")] 
+d[d$id %in% c(51, 52, 53, 54, 82, 83, 140, 141, 142, 152, 160, 164, 165, 183, 184, 185, 186, 187, 188, 207, 208, 209, 210, 211, 214, 215, 216, 217, 221, 222, 228, 229, 230, 244, 245, 246, 247, 249, 271, 272, 595, 597, 605), c("control", "control_mean", "control_sd", "control_se", "control_n", "treatment", "treatment_mean", "treatment_sd", "treatment_se", "treatment_n")] <- d[d$id %in% c(51, 52, 53, 54, 82, 83, 140, 141, 142, 152, 160, 164, 165, 183, 184, 185, 186, 187, 188, 207, 208, 209, 210, 211, 214, 215, 216, 217, 221, 222, 228, 229, 230, 244, 245, 246, 247, 249, 271, 272, 595, 597, 605), c("treatment", "treatment_mean", "treatment_sd", "treatment_se", "treatment_n", "control", "control_mean", "control_sd", "control_se", "control_n")] 
 
 
 ##### MANAGEMENT - SOIL PROPERTY RELATIONSHIPS #####
@@ -124,7 +125,7 @@ ggplot(soilp.all, aes(y=order, x=lnRR, xmin=lnRR.ci.lower, xmax=lnRR.ci.upper))+
   #add the CI error bars
   geom_errorbarh(height=.1)+ theme_bw()+ 
   #Specify the limits of the x-axis and relabel it to something more meaningful
-  scale_x_continuous(limits=c(-2,2), name='Log Response Ratio')+
+  scale_x_continuous(limits=c(-3,3), name='Log Response Ratio')+
   scale_y_continuous(limits=c(0,5), breaks = soilp.all$order, labels = soilp.all$practice_predictor) + 
   theme(axis.text.y=element_text(size=13), axis.text.x=element_text(size=13), axis.title.x=element_text(size=15), strip.text.y = element_text(size=13))+ 
   ylab('')+
@@ -168,7 +169,10 @@ water.quality
 # DO is the only water quality response for which higher values are better
 # OMIT both of these for now, for simplicity
 
-outcomes <- outcomes[ !(outcomes$response %in% c("DO (Spring water)","pH (spring water)")) , ]
+# OMIT "bare ground" as a positive indicator of forage production
+# OMIT "pest abundance" and "probability of intense herbivory damage" as positive indicators of natural pest control
+
+outcomes <- outcomes[ !(outcomes$response %in% c("DO (Spring water)","pH (spring water)","bare ground", "pest abundance", "probability of intense herbivory damage")) , ]
 
 outcomes$treatment_category_1 <- factor(outcomes$treatment_category_1)
 outcomes$ref_code <- factor(outcomes$ref_code)
@@ -177,8 +181,6 @@ outcomes$response_lumped <- factor(outcomes$response_lumped)
 
 # calculate yi and vi for each row of data
 res <- escalc(measure="ROM", m1i=treatment_mean, sd1i=treatment_sd, n1i=treatment_n, m2i=control_mean, sd2i=control_sd, n2i=control_n, data=outcomes)
-
-##### START HERE - some have vi = NA, check
 
 # analyze only those relationships that have 3 or more observations
 outctab <- as.data.frame(table(outcomes$response_lumped, outcomes$treatment_category_1))
