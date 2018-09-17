@@ -1,0 +1,57 @@
+// Filter an image collection by date and region to make a
+// median pixel composite.
+//
+// See also: ClippedComposite, which crops the output image
+// instead of filtering the input collection.
+
+// Filter to only include images within the colorado and utah boundaries.
+var polygon = ee.Geometry.Polygon([[
+  [-109.05, 37.0], [-102.05, 37.0], [-102.05, 41.0],   // colorado
+  [-109.05, 41.0], [-111.05, 41.0], [-111.05, 42.0],   // utah
+  [-114.05, 42.0], [-114.05, 37.0], [-109.05, 37.0]]]);
+
+// Create a Landsat 7 composite for Spring of 2000, and filter by
+// the bounds of the FeatureCollection.
+var collection = ee.ImageCollection('LC8_L1T')
+    .filterDate('2017-03-01', '2017-05-01')
+    .filterBounds(polygon);
+
+// Select the median pixel.
+var median = collection.median();
+
+// Select the red, green and blue bands.
+var result = median.select('B3', 'B2', 'B1');
+Map.addLayer(result, {gain: '1.4, 1.4, 1.1'});
+Map.setCenter(-110, 40, 5);
+
+
+// Load an image.
+var image = ee.Image('LANDSAT/LC8_L1T_TOA/LC80440342014077LGN00');
+//LC80430332016108LGN00
+
+var image2 = ee.ImageCollection('LANDSAT/LC8_L1T_TOA').filterDate(
+  '2016-08-01', '2016-09-01');
+//.filterBounds(geometry)
+
+// Define the visualization parameters.
+var false_color = {
+  bands: ['B5', 'B4', 'B3'],
+  min: 0,
+  max: 0.5,
+  gamma: [0.95, 1.1, 1]
+};
+
+
+var true_color = {
+  bands: ['B4', 'B3', 'B2'],
+  min: 0,
+  max: 0.5, //0.2
+  gamma: [0.95, 1.1, 1] // 0.9, 0.9, 0.8
+};
+
+
+// Center the map and display the image.
+Map.setCenter(-122, 37.5, 11); // San Francisco Bay
+Map.addLayer(image, vizParams, 'false color composite');
+Map.addLayer(image, vizParams2, 'true color composite');
+Map.addLayer(image2, vizParams, 'false color composite - img collection');
