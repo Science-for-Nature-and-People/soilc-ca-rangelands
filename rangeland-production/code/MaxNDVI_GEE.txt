@@ -5,18 +5,24 @@
 // instead of filtering the input collection.
 
 // Filter to only include images within the colorado and utah boundaries.
+// EEO: Why is this set to CO and UT?
 var polygon = ee.Geometry.Polygon([[
   [-109.05, 37.0], [-102.05, 37.0], [-102.05, 41.0],   // colorado
   [-109.05, 41.0], [-111.05, 41.0], [-111.05, 42.0],   // utah
   [-114.05, 42.0], [-114.05, 37.0], [-109.05, 37.0]]]);
 
+Map.centerObject(polygon,7);
+Map.addLayer(polygon);
+
 // Create a Landsat 7 composite for Spring of 2000, and filter by
 // the bounds of the FeatureCollection.
+// EEO: What are the right dates to include in the collection?
 var collection = ee.ImageCollection('LC8_L1T')
-    .filterDate('2017-03-01', '2017-05-01')
+    .filterDate('1987-03-01', '2017-05-01')
     .filterBounds(polygon);
 
 // Select the median pixel.
+// EEO: What's the point of getting the median?
 var median = collection.median();
 
 // Select the red, green and blue bands.
@@ -24,14 +30,17 @@ var result = median.select('B3', 'B2', 'B1');
 Map.addLayer(result, {gain: '1.4, 1.4, 1.1'});
 Map.setCenter(-110, 40, 5);
 
-
 // Load an image.
+// EEO: Why just load one image? Don't we need multiple to cover the state?
 var image = ee.Image('LANDSAT/LC8_L1T_TOA/LC80440342014077LGN00');
 //LC80430332016108LGN00
 
+// EEO: Why create another ImageCollection when you defined one at the beginning? 
 var image2 = ee.ImageCollection('LANDSAT/LC8_L1T_TOA').filterDate(
   '2016-08-01', '2016-09-01');
 //.filterBounds(geometry)
+
+// EEO: Where do you calculate Max NDVI?
 
 // Define the visualization parameters.
 var false_color = {
@@ -41,7 +50,6 @@ var false_color = {
   gamma: [0.95, 1.1, 1]
 };
 
-
 var true_color = {
   bands: ['B4', 'B3', 'B2'],
   min: 0,
@@ -49,9 +57,8 @@ var true_color = {
   gamma: [0.95, 1.1, 1] // 0.9, 0.9, 0.8
 };
 
-
 // Center the map and display the image.
-Map.setCenter(-122, 37.5, 11); // San Francisco Bay
-Map.addLayer(image, vizParams, 'false color composite');
-Map.addLayer(image, vizParams2, 'true color composite');
-Map.addLayer(image2, vizParams, 'false color composite - img collection');
+.setCenter(-122, 37.5, 11); // San Francisco Bay/
+Map.addLayer(image, false_color, 'false color composite');
+Map.addLayer(image, true_color, 'true color composite');
+//Map.addLayer(image2, vizParams, 'false color composite - img collection');
