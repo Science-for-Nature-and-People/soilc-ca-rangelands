@@ -1,0 +1,199 @@
+//Download SOC, clay fraction, SRTM, and CHIRPS MAP for CA
+//Last updated: 1-29-19
+
+
+var soc = ee.Image("users/stephenawood/SoilGrids_soc_M_sl3_100m"),
+    srtm = ee.Image("USGS/SRTMGL1_003"),
+    chirps_daily = ee.ImageCollection("UCSB-CHG/CHIRPS/DAILY"),
+    ned_3dep = ee.Image("USGS/NED"),
+    imageCollection = ee.ImageCollection("GLCF/GLS_TCC");
+
+// Load a California polygon
+var CA = ee.FeatureCollection('ft:1fRY18cjsHzDgGiJiS2nnpUU3v9JPDc2HNaR7Xk8')
+  .filter(ee.Filter.eq('Name', 'California'));
+
+// Load SOC, precip, and DEMs
+var soc = ee.Image("users/stephenawood/SoilGrids_soc_M_sl3_100m");
+var clay_fraction = ee.Image("users/stephenawood/SoilGrids_clay_M_sl3_100m");
+var sand_fraction = ee.Image("users/stephenawood/SoilGrids_sand_M_sl3_100m");
+var srtm = ee.Image("USGS/SRTMGL1_003");
+var ned_3dep = ee.Image("USGS/NED");
+var chirps_daily = ee.ImageCollection("UCSB-CHG/CHIRPS/DAILY");
+// GLCF tree canopy cover available for 2000, 2005, 2010
+var glcf_2010 = ee.ImageCollection("GLCF/GLS_TCC").filter(ee.Filter.date('2010-01-01', '2010-12-31'));
+var glcf_2005 = ee.ImageCollection("GLCF/GLS_TCC").filter(ee.Filter.date('2005-01-01', '2005-12-31'));
+var glcf_2000 = ee.ImageCollection("GLCF/GLS_TCC").filter(ee.Filter.date('2000-01-01', '2000-12-31'));
+
+// Load Drought index (calculated using data from droughtmonitor.unl.edu)
+// https://droughtmonitor.unl.edu/AboutUSDM/AbouttheData/DSCI.aspx
+var table = ee.FeatureCollection("users/stephenawood/ADSCI_drought_2000-2018");
+
+//-------- calculate mean annaul precip from Chirps daily data and crop to CA
+// see: https://mygeoblog.com/2017/05/18/annual-rainfall/
+// set start and end year
+var startyear = 1981; // 1981
+var endyear = 2018; // 2018
+// make a date object
+var startdate = ee.Date.fromYMD(startyear, 1, 1);
+var enddate = ee.Date.fromYMD(endyear + 1, 1, 1);
+// make a list with years
+var years = ee.List.sequence(startyear, endyear);
+
+// calculate annual precip
+var annualPrecip = ee.ImageCollection.fromImages(
+  years.map(function (year) {
+    var annual = chirps_daily
+        .filter(ee.Filter.calendarRange(year, year, 'year'))
+        .sum();
+    return annual
+        .set('year', year)
+        .set('system:time_start', ee.Date.fromYMD(year, 1, 1));
+}));
+
+// plot annual precip
+var title = {
+  title: 'Annual precipitation',
+  hAxis: {title: 'Time'},
+  vAxis: {title: 'Precipitation (mm)'},
+};
+
+var chart = ui.Chart.image.seriesByRegion({
+  imageCollection: annualPrecip,
+  regions: CA,
+  reducer: ee.Reducer.mean(),
+  band: 'precipitation',
+  scale: 2500,
+  xProperty: 'system:time_start',
+  seriesProperty: 'SITE'
+}).setOptions(title)
+  .setChartType('ColumnChart');
+
+print(chart, 'MAP chart');
+
+var MAP = annualPrecip.mean().clip(CA);
+print(MAP, 'CHIRPS MAP');
+Map.addLayer(MAP, {min: 0, max: 2500, palette: '000000, 0000FF, FDFF92, FF2700, FF00E7'}, 'MAP');
+
+// extract Tree Canopy Cover dataset from GLCF product
+var treeCanopyCover = glcf_2010.select('tree_canopy_cover');
+var TCC10 = treeCanopyCover.reduce(ee.Reducer.median());
+var TCC05 = glcf_2005.select('tree_canopy_cover').reduce(ee.Reducer.median());
+var TCC00 = glcf_2000.select('tree_canopy_cover').reduce(ee.Reducer.median());
+
+var soc_CA = soc.clip(CA); //.clip for image; .filterBounds for image collection
+var clay_CA = clay_fraction.clip(CA);
+//var sand_CA = sand_fraction.clip(CA);
+var srtm_CA = srtm.clip(CA);
+var ned_CA = ned_3dep.clip(CA);
+var TCC10_CA = TCC10.clip(CA);
+var TCC05_CA = TCC05.clip(CA);
+var TCC00_CA = TCC00.clip(CA);
+
+print(soc_CA, 'SOC');
+print(clay_CA, 'clay fraction');
+//print(sand_CA, 'sand fraction');
+print(srtm_CA, 'SRTM');
+//print(ned_CA, 'NED');
+print(TCC10_CA, 'tree canopy cover 2010');
+print(TCC05_CA, 'tree canopy cover 2005');
+print(TCC00_CA, 'tree canopy cover 2000');
+
+print('Projection, crs, and crs_transform:', MAP.projection()); // check projection
+print('Scale in meters:', MAP.projection().nominalScale()); // check resolution
+
+var Palette = ['FFFFFF', 'CE7E45', 'DF923D', 'F1B555', 'FCD163', '99B718',
+               '74A901', '66A000', '529400', '3E8601', '207401', '056201',
+               '004C00', '023B01', '012E01', '011D01', '011301'];
+
+Map.addLayer(soc_CA, {min: 0, max: 50, palette: Palette}, 'SOC');
+Map.addLayer(clay_CA, {min: 0, max: 50, palette: Palette}, 'clay fraction');
+Map.addLayer(srtm_CA, {min: 0, max: 10000, palette: Palette}, 'SRTM DEM');
+//Map.addLayer(ned_CA, {min: 0, max: 10000, palette: Palette}, 'NED DEM');
+
+var TCCVis = {min: 0.0, max: 100.0, palette: ['ffffff', 'afce56', '5f9c00', '0e6a00', '003800'],};
+Map.addLayer(TCC10_CA, TCCVis, 'Tree Canopy Cover 2010');
+Map.addLayer(TCC05_CA, TCCVis, 'Tree Canopy Cover 2005');
+Map.addLayer(TCC00_CA, TCCVis, 'Tree Canopy Cover 2000');
+
+// Export to Google Drive
+Export.image.toDrive({
+  image: MAP,
+  description: 'CHIRPS_mean_annual_precip',
+//  scale: 111,
+  region: CA.geometry().bounds(),
+  crs: 'EPSG:4326',
+  folder: 'SNAPP-CA',
+  maxPixels: 2000000000
+});
+
+Export.image.toDrive({
+  image: soc_CA,
+  description: 'SOC_CA',
+  scale: 100,
+  region: CA.geometry().bounds(),
+  crs: 'EPSG:4269',
+  folder: 'SNAPP-CA',
+  maxPixels: 2000000000
+});
+
+Export.image.toDrive({
+  image: clay_CA,
+  description: 'clay_fraction_CA',
+  scale: 100,
+  region: CA.geometry().bounds(),
+  crs: 'EPSG:4269',
+  folder: 'SNAPP-CA',
+  maxPixels: 2000000000
+});
+
+Export.image.toDrive({
+  image: srtm_CA,
+  description: 'SRTM_CA',
+  scale: 30,
+  region: CA.geometry().bounds(),
+  crs: 'EPSG:4326',
+  folder: 'SNAPP-CA',
+  maxPixels: 2000000000
+});
+
+Export.image.toDrive({
+  image: TCC10_CA,
+  description: 'TCC10_CA',
+  scale: 30,
+  region: CA.geometry().bounds(),
+  crs: 'EPSG:4326',
+  folder: 'SNAPP-CA',
+  maxPixels: 2000000000
+});
+
+Export.image.toDrive({
+  image: TCC05_CA,
+  description: 'TCC05_CA',
+  scale: 30,
+  region: CA.geometry().bounds(),
+  crs: 'EPSG:4326',
+  folder: 'SNAPP-CA',
+  maxPixels: 2000000000
+});
+
+Export.image.toDrive({
+  image: TCC00_CA,
+  description: 'TCC00_CA',
+  scale: 30,
+  region: CA.geometry().bounds(),
+  crs: 'EPSG:4326',
+  folder: 'SNAPP-CA',
+  maxPixels: 2000000000
+});
+
+/*
+Export.image.toDrive({
+  image: ned_CA,
+  description: 'NED_3DEP_CA',
+  scale: 10,
+  region: CA.geometry().bounds(),
+  crs: 'EPSG:4269',
+  folder: 'SNAPP-CA',
+  maxPixels: 2000000000
+});
+*/

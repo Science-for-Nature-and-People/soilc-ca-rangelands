@@ -1,0 +1,142 @@
+/*
+Annual peak (max) NDVI / EVI / NIRv across CA
+Updated: 3-11-19
+*/
+
+// Set date parameters
+// Jan 15 - May 15 'growing season'; see George CA productivity_Rangelands 1985.pdf
+var year = 2018;
+var start_p = '-01-15';
+var end_p = '-05-15';
+var end_year = year;
+// var end_year = year + 1; // use when growing season overlaps two years
+
+// Load a California polygon
+var CA = ee.FeatureCollection('ft:1fRY18cjsHzDgGiJiS2nnpUU3v9JPDc2HNaR7Xk8')
+  .filter(ee.Filter.eq('Name', 'California'));
+
+// Load Landsat SR image collections
+var landsat8 = ee.ImageCollection('LANDSAT/LC08/C01/T1_SR');
+var landsat7 = ee.ImageCollection('LANDSAT/LE07/C01/T1_SR');
+var landsat5 = ee.ImageCollection('LANDSAT/LT05/C01/T1_SR');
+
+// Functions to cloud and cloud shadow mask -- used in maskClouds() below
+var getQABits = function(image, start, end, newName) {
+    // Compute the bits we need to extract.
+    var pattern = 0;
+    for (var i = start; i <= end; i++) {
+       pattern += Math.pow(2, i);
+    }
+    // Return a single band image of the extracted QA bits, giving the band a new name
+    return image.select([0],[newName]).bitwiseAnd(pattern).rightShift(start);
+};
+
+var cloud_shadows = function(image) {
+  var QA = image.select(['pixel_qa']); // Select QA band & get internal_cloud_algorithm_flag bit
+  return getQABits(QA, 3,3, 'Cloud_shadows').eq(0); // Return an image masking out cloud shadows.
+};
+
+var clouds = function(image) {
+  var QA = image.select(['pixel_qa']); // Select QA band & get internal_cloud_algorithm_flag bit
+  return getQABits(QA, 5,5, 'Cloud').eq(0);  // Return an image masking out clouds.
+};
+
+//------ Apply spatial & temporal filters & cloud mask Landsat 5/7/8 collections -------
+if (year > 2012) {
+  var filtered = landsat8.filterDate(year.toString() + start_p,end_year.toString() + end_p)
+  .filterBounds(CA);
+}
+else if (year > 1999){
+  var filtered = landsat7.filterDate(year.toString() + start_p,end_year.toString() + end_p)
+  .filterBounds(CA);
+}
+else {
+  var filtered = landsat5.filterDate(year.toString() + start_p,end_year.toString() + end_p)
+    .filterBounds(CA);
+}
+print(filtered); // Returns a collection
+
+// apply (map) cloud & cloud shadow mask to all images in collection
+var filtered_masked = filtered
+  .map(function(image){
+    var cs = cloud_shadows(image);
+    var c = clouds(image);
+    image = image.updateMask(cs);
+    return image.updateMask(c);
+});
+
+print(filtered_masked); // Returns a collection
+
+//------ Add NDVI, EVI, and NIRv bands to all images in masked collection --------
+var col_addNDVI = filtered_masked
+  .map(function(image){
+    return image.addBands(image.normalizedDifference(['B5', 'B4']).rename('NDVI')) // L8
+//    return image.addBands(image.normalizedDifference(['B4', 'B3']).rename('NDVI')) // L5/L7
+  });
+
+var col_addEVI = filtered_masked
+  .map(function(image){
+    return image.addBands(image.expression(
+    '2.5 * (((NIR - RED) * 0.0001) / ((NIR * 0.0001) + 6 * (RED * 0.0001) - 7.5 * (BLUE * 0.0001) + 1))', {
+      'NIR': image.select('B5'), 'RED': image.select('B4'),'BLUE': image.select('B2')}) // L8
+//      'NIR': image.select('B4'), 'RED': image.select('B3'),'BLUE': image.select('B1')}) // L5/L7
+      .rename('EVI'))
+  });
+
+var col_addNIRv = filtered_masked
+  .map(function(image){
+    return image.addBands(image.expression(
+      '(NIR * 0.0001) * NDVI', {
+        'NDVI': image.normalizedDifference(['B5', 'B4']), 'NIR': image.select('B5')}) // L8
+//        'NDVI': image.normalizedDifference(['B4', 'B3']), 'NIR': image.select('B4')}) // L5/L7
+        .rename('NIRv'))
+  });
+
+//------------- Reduce collections to peak NDVI / EVI / NIRv -------------
+// ee.Reducer.max() applies max reducer to first band
+// Select only NDVI (or EVI/NIRv) bands from collection & reduce collection to peak (max) NDVI (or EVI/NIRv)
+var maxNDVI = col_addNDVI.select('NDVI').reduce(ee.Reducer.max());
+var maxEVI = col_addEVI.select('EVI').reduce(ee.Reducer.max());
+var maxNIRv = col_addNIRv.select('NIRv').reduce(ee.Reducer.max());
+print(maxNDVI, 'max NDVI');
+print(maxEVI, 'max EVI');
+print(maxNIRv, 'max NIRv');
+
+var Palette = ['FFFFFF', 'CE7E45', 'DF923D', 'F1B555', 'FCD163', '99B718',
+               '74A901', '66A000', '529400', '3E8601', '207401', '056201',
+               '004C00', '023B01', '012E01', '011D01', '011301'];
+
+Map.addLayer(maxNDVI, {min: 0, max: 1, palette: Palette}, 'max NDVI');
+Map.addLayer(maxEVI, {min: 0, max: 1, palette: Palette}, 'max EVI');
+Map.addLayer(maxNIRv, {min: 0, max: 1, palette: Palette}, 'max NIRv');
+
+//------------- Export to Google Drive ------------------
+Export.image.toDrive({
+  image: maxNDVI,
+  description: 'CA_max_NDVI_2018',
+  scale: 30,
+  region: CA.geometry().bounds(),
+  crs: 'EPSG:4326',
+  folder: 'SNAPP-CA',
+  maxPixels: 2000000000
+});
+
+Export.image.toDrive({
+  image: maxEVI,
+  description: 'CA_max_EVI_2018',
+  scale: 30,
+  region: CA.geometry().bounds(),
+  crs: 'EPSG:4326',
+  folder: 'SNAPP-CA',
+  maxPixels: 2000000000
+});
+
+Export.image.toDrive({
+  image: maxNIRv,
+  description: 'CA_max_NIRv_2018',
+  scale: 30,
+  region: CA.geometry().bounds(),
+  crs: 'EPSG:4326',
+  folder: 'SNAPP-CA',
+  maxPixels: 2000000000
+});
